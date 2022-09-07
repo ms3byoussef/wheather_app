@@ -250,6 +250,7 @@ class _WeatherPageState extends State<WeatherPage> {
 
                             return Column(
                               children: [
+                                // WeatherChart(),
                                 Row(children: [
                                   WeatherItem(
                                     value: "Sun",

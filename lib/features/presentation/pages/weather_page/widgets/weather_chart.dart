@@ -12,33 +12,37 @@ class WeatherChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<WeatherCubit, WeatherState>(builder: (context, states) {
+    return BlocBuilder<WeatherCubit, WeatherState>(builder: (context, state) {
       WeatherCubit weatherCubit = BlocProvider.of<WeatherCubit>(context);
-
-      return SizedBox(
-        width: MediaQuery.of(context).size.width,
-        height: 240,
-        child: Card(
-          elevation: 5,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
+      if (state is WeatherStateSuccess) {
+        state.weather;
+        return SizedBox(
+          width: MediaQuery.of(context).size.width,
+          height: 240,
+          child: Card(
+            elevation: 5,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: SfCartesianChart(
+              zoomPanBehavior: ZoomPanBehavior(enablePinching: true),
+              primaryXAxis: CategoryAxis(interval: 1),
+              series: <ChartSeries<CurrentWeatherModel, String>>[
+                SplineSeries<CurrentWeatherModel, String>(
+                    dataSource: weatherCubit.forecastWeather!,
+                    xValueMapper: (CurrentWeatherModel f, _) {
+                      var time = f.forecastHour!.first.time;
+                      return time;
+                    },
+                    yValueMapper: (CurrentWeatherModel f, _) =>
+                        f.forecastHour!.first.tempC),
+              ],
+            ),
           ),
-          child: SfCartesianChart(
-            zoomPanBehavior: ZoomPanBehavior(enablePinching: true),
-            primaryXAxis: CategoryAxis(interval: 1),
-            series: <ChartSeries<CurrentWeatherModel, String>>[
-              SplineSeries<CurrentWeatherModel, String>(
-                  dataSource: weatherCubit.forecastWeather!,
-                  xValueMapper: (CurrentWeatherModel f, _) {
-                    var time = f.forecastHour!.first.time;
-                    return time;
-                  },
-                  yValueMapper: (CurrentWeatherModel f, _) =>
-                      f.forecastHour!.first.tempC),
-            ],
-          ),
-        ),
-      );
+        );
+      } else {
+        return const SizedBox();
+      }
     });
   }
 }
