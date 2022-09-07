@@ -1,14 +1,15 @@
 // ignore_for_file: unused_local_variable
 
+import 'package:country_picker/country_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:weather_app/features/data/model/weather_model.dart';
 import 'package:weather_app/features/presentation/bloc/cubit/weather_cubit.dart';
-import 'package:weather_app/features/presentation/widgets/search_bar.dart';
 
 import '../../../../core/theme/app_theme.dart';
 import '../../bloc/cubit/weather_state.dart';
+import '../../widgets/weather_item.dart';
 import 'widgets/icon_with_text.dart';
 
 class WeatherPage extends StatefulWidget {
@@ -38,11 +39,13 @@ class _WeatherPageState extends State<WeatherPage> {
           ],
           borderRadius: BorderRadius.circular(30),
         ),
-        child: Column(children: [
-          buildCityTitle(),
-          buildWeatherImageAndTemp(),
-          buildWindyRow(),
-        ]));
+        child: SingleChildScrollView(
+          child: Column(children: [
+            buildCityTitle(),
+            buildWeatherImageAndTemp(),
+            buildWindyRow(),
+          ]),
+        ));
   }
 
   buildCityTitle() {
@@ -50,6 +53,8 @@ class _WeatherPageState extends State<WeatherPage> {
       builder: (context, state) {
         if (state is WeatherStateSuccess) {
           CurrentWeatherModel weather = state.weather;
+          var weatherCubit = BlocProvider.of<WeatherCubit>(context);
+
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -63,23 +68,30 @@ class _WeatherPageState extends State<WeatherPage> {
                   const SizedBox(width: 6),
                   IconButton(
                     onPressed: () {
-                      showModalBottomSheet(
-                          isScrollControlled: true,
-                          isDismissible: true,
-                          shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.vertical(
-                                top: Radius.circular(20),
-                                bottom: Radius.circular(20)),
-                          ),
-                          context: context,
-                          enableDrag: true,
-                          builder: (_) => SearchBar(
-                                controller: searchController,
-                                onTap: () async {
-                                  await BlocProvider.of<WeatherCubit>(context)
-                                      .getWeather(city: searchController.text);
-                                },
-                              ));
+                      showCountryPicker(
+                        context: context,
+                        onSelect: (Country country) async {
+                          await weatherCubit.getData(country: country.name);
+                        },
+                      );
+
+                      // showModalBottomSheet(
+                      //     isScrollControlled: true,
+                      //     isDismissible: true,
+                      //     shape: const RoundedRectangleBorder(
+                      //       borderRadius: BorderRadius.vertical(
+                      //           top: Radius.circular(20),
+                      //           bottom: Radius.circular(20)),
+                      //     ),
+                      //     context: context,
+                      //     enableDrag: true,
+                      //     builder: (_) => SearchBar(
+                      //           controller: searchController,
+                      //           onTap: () async {
+                      //             await BlocProvider.of<WeatherCubit>(context)
+                      //                 .getWeather(city: searchController.text);
+                      //           },
+                      //         ));
                     },
                     icon: const Icon(Icons.arrow_drop_down),
                     color: Colors.white,
@@ -147,37 +159,47 @@ class _WeatherPageState extends State<WeatherPage> {
         if (state is WeatherStateSuccess) {
           CurrentWeatherModel weather = state.weather;
 
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              SizedBox(
-                height: 150,
-                child: Image.asset("assets/images/showers.png"),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                child: Text(
-                  "${weather.current.tempC} "
-                  "°",
-                  style: AppTheme.boldWhiteHeadline.copyWith(fontSize: 40),
+          return SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                SizedBox(
+                  height: 130,
+                  child: Image.asset("assets/images/showers.png"),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 20),
-                child: Text(
-                  weather.current.conditionText,
-                  style: AppTheme.boldWhiteHeadline,
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Text(
+                    "${weather.current.tempC} "
+                    "C°",
+                    style: AppTheme.boldWhiteHeadline.copyWith(fontSize: 40),
+                  ),
                 ),
-              ),
-              const SizedBox(
-                height: 20,
-              ),
-              const Divider(
-                color: Colors.white54,
-                height: 1.4,
-              )
-            ],
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Text(
+                    "${weather.current.tempF} "
+                    "F°",
+                    style: AppTheme.boldWhiteHeadline.copyWith(fontSize: 20),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  child: Text(
+                    weather.current.conditionText,
+                    style: AppTheme.boldWhiteHeadline,
+                  ),
+                ),
+                const SizedBox(
+                  height: 10,
+                ),
+                const Divider(
+                  color: Colors.white54,
+                  height: 1.4,
+                )
+              ],
+            ),
           );
         } else {
           return showProgressIndicator();
@@ -204,7 +226,6 @@ class _WeatherPageState extends State<WeatherPage> {
 
   @override
   void initState() {
-    // BlocProvider.of<WeatherCubit>(context).getWeather(city: );
     super.initState();
   }
 
@@ -218,16 +239,58 @@ class _WeatherPageState extends State<WeatherPage> {
             delegate: SliverChildListDelegate(
               [
                 Container(
-                  margin: const EdgeInsets.all(14),
-                  padding: const EdgeInsets.all(8),
-                  child: Column(
-                    children: [
-                      SingleChildScrollView(
-                        child: Row(),
-                      )
-                    ],
-                  ),
-                )
+                    margin: const EdgeInsets.all(14),
+                    padding: const EdgeInsets.all(8),
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: BlocBuilder<WeatherCubit, WeatherState>(
+                        builder: (context, state) {
+                          if (state is WeatherStateSuccess) {
+                            CurrentWeatherModel weather = state.weather;
+
+                            return Column(
+                              children: [
+                                Row(children: [
+                                  WeatherItem(
+                                    value: "Sun",
+                                    unit: "Raise",
+                                    imageUrl: "sunrise",
+                                    time: weather.forecastAstro!.sunRise
+                                        .toString(),
+                                  ),
+                                  WeatherItem(
+                                    value: "Sun",
+                                    unit: "Raise",
+                                    imageUrl: "sunset",
+                                    time: weather.forecastAstro!.sunSet
+                                        .toString(),
+                                  ),
+                                  WeatherItem(
+                                    value: "Moon",
+                                    unit: "Raise",
+                                    imageUrl: "moon",
+                                    time: weather.forecastAstro!.moonRise
+                                        .toString(),
+                                  ),
+                                  WeatherItem(
+                                    value: "Moon",
+                                    unit: "set",
+                                    imageUrl: "moonset",
+                                    time: weather.forecastAstro!.moonSet
+                                        .toString(),
+                                  ),
+                                ]),
+                                const SizedBox(
+                                  height: 30,
+                                ),
+                              ],
+                            );
+                          } else {
+                            return const SizedBox();
+                          }
+                        },
+                      ),
+                    ))
               ],
             ),
           )

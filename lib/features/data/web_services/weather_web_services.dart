@@ -33,4 +33,21 @@ class WeatherWebServices {
       return e.toString();
     }
   }
+
+  Future getForecastWeather(String? city) async {
+    try {
+      Response response = await DioHelper.getData(url: forecast, query: {
+        'key': apiKay,
+        'q': city,
+        'days': 7,
+        'aqi': 'no',
+        'alerts': 'no',
+      });
+      print(response.data);
+      return response.data;
+    } catch (e) {
+      print(e.toString());
+      return e.toString();
+    }
+  }
 }

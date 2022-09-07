@@ -10,4 +10,11 @@ class WeatherRepository {
 
     return weather;
   }
+
+  Future<List<CurrentWeatherModel>> getForecastWeather(String? city) async {
+    final weathers = await weatherWebServices!.getWeather(city);
+    return weathers
+        .map((weather) => CurrentWeatherModel.fromJson(weather))
+        .toList();
+  }
 }

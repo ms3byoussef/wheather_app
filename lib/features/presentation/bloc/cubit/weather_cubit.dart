@@ -12,7 +12,7 @@ class WeatherCubit extends Cubit<WeatherState> {
   WeatherCubit({required this.weatherRepository}) : super(WeatherInitial());
 
   CurrentWeatherModel? weather;
-  List<CurrentWeatherModel>? forecastWeatherModel;
+  List<CurrentWeatherModel>? forecastWeather;
   GetStorage storage = GetStorage();
   List<String> otherLocations = [];
   int? selectedOtherLocation;
@@ -27,6 +27,18 @@ class WeatherCubit extends Cubit<WeatherState> {
     weather = weatherModel;
 
     return weatherModel;
+  }
+
+  Future<List<CurrentWeatherModel>> getForecastWeather({String? city}) async {
+    weather = null;
+    emit(WeatherStateLoading());
+
+    CurrentWeatherModel weatherModel =
+        await weatherRepository.getCurrentWeather(city);
+    emit(WeatherStateSuccess(weather: weatherModel));
+    weather = weatherModel;
+    forecastWeather!.add(weatherModel);
+    return forecastWeather!;
   }
 
   void loadOtherLocations() {
@@ -75,11 +87,12 @@ class WeatherCubit extends Cubit<WeatherState> {
     emit(WeatherOtherLocationsChanged());
   }
 
-  getData({String country = "London"}) async {
+  getData({String country = "cairo"}) async {
     weather = null;
     emit(WeatherInitial());
     String? favCountry = storage.read('favCountry');
     try {
+      emit(WeatherStateLoading());
       var dataWeather =
           await weatherRepository.getCurrentWeather(favCountry ?? country);
       emit(WeatherStateSuccess(weather: dataWeather));

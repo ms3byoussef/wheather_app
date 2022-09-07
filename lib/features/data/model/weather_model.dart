@@ -1,16 +1,16 @@
 class CurrentWeatherModel {
   final WeatherLocation location;
   final WeatherCurrent current;
-  // final ForecastDay? forecastDay;
-  // final ForecastAstro? forecastAstro;
-  // final ForecastHour? forecastHour;
+  final ForecastDay? forecastDay;
+  final ForecastAstro? forecastAstro;
+  final List<ForecastHour>? forecastHour;
 
   CurrentWeatherModel({
     required this.location,
     required this.current,
-    // this.forecastDay,
-    // this.forecastAstro,
-    // this.forecastHour,
+    this.forecastDay,
+    this.forecastAstro,
+    this.forecastHour,
   });
 
   factory CurrentWeatherModel.fromJson(Map<String, dynamic> json) {
@@ -18,12 +18,13 @@ class CurrentWeatherModel {
       location:
           WeatherLocation.fromJson(json['location'] as Map<String, dynamic>),
       current: WeatherCurrent.fromJson(json['current'] as Map<String, dynamic>),
-      // forecastDay: ForecastDay.fromJson(
-      //     json['forecast']['forecastday'][0]['day'] as Map<String, dynamic>),
-      // forecastAstro: ForecastAstro.fromJson(
-      //     json['forecast']['forecastday'][0]['astro'] as Map<String, dynamic>),
-      // forecastHour: ForecastHour.fromJson(
-      //     json['forecast']['forecastday'][0]['hour'] as Map<String, dynamic>),
+      forecastDay: ForecastDay.fromJson(
+          json['forecast']['forecastday'][0]['day'] as Map<String, dynamic>),
+      forecastAstro: ForecastAstro.fromJson(
+          json['forecast']['forecastday'][0]['astro'] as Map<String, dynamic>),
+      forecastHour: List<ForecastHour>.from(json['forecast']['forecastday'][0]
+              ['hour']
+          .map((x) => ForecastHour.fromJson(x))),
     );
   }
 }
@@ -167,7 +168,7 @@ class ForecastHour {
       time: json['time'] as String,
       tempC: json['temp_c'] as double,
       isDay: json['is_day'] as int,
-      conditionText: json['condition'] as String,
+      conditionText: json['condition']['text'] as String,
       conditionIcon: json['condition']['icon'] as String,
     );
   }
